@@ -15,20 +15,20 @@ public class Earthquake {
      */
     private String mMagnitude;
     private String mLocation;
-    private String mDate;
+    private long mTimeInMilliseconds;
 
 
     /**
-     * Constructs a new {@link Earthquake} object
+     * 构造一个新的 {@link Earthquake} 对象。
      *
-     * @param magnitude is the magnitude of earthquake
-     * @param location is the city location of earthquake
-     * @param date is the date the earthquake happened
+     * @param magnitude 表示地震的震级（大小）
+     * @param location 表示地震的城市位置
+     * @param timeInMilliseconds 表示地震发生时以毫秒（根据 Epoch）计的时间
      */
-    public Earthquake(String magnitude, String location, String date) {
+    public Earthquake(String magnitude, String location, long timeInMilliseconds) {
         mMagnitude = magnitude;
         mLocation = location;
-        mDate = date;
+        mTimeInMilliseconds = timeInMilliseconds;
     }
 
     // Return the magnitude of earthquake
@@ -42,7 +42,7 @@ public class Earthquake {
     }
 
     // Return the date of earthquake
-    public String getmDate() {
-        return mDate;
+    public long getmTimeInMilliseconds() {
+        return mTimeInMilliseconds;
     }
 }
