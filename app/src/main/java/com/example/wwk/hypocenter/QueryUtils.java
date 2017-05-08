@@ -43,9 +43,10 @@ public final class QueryUtils {
                 JSONObject currentEarthquake = earthquakeArray.getJSONObject(i);
                 JSONObject properties = currentEarthquake.getJSONObject("properties");
 
-                String magnitude = properties.getString("mag");
+                // 提取名为 "mag" 的键的值
+                double magnitude = properties.getDouble("mag");
                 String location = properties.getString("place");
-                // Extract the value for the key called "time"
+                // 提取名为 "time" 的键的值
                 long time = properties.getLong("time");
 
                 Earthquake earthquake = new Earthquake(magnitude, location, time);
