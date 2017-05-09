@@ -165,8 +165,10 @@ public final class QueryUtils {
                 String location = properties.getString("place");
                 // 提取名为 "time" 的键的值
                 long time = properties.getLong("time");
+                // 提取名为 "url" 的键的值
+                String url = properties.getString("url");
 
-                Earthquake earthquake = new Earthquake(magnitude, location, time);
+                Earthquake earthquake = new Earthquake(magnitude, location, time, url);
                 earthquakes.add(earthquake);
             }
 

@@ -16,6 +16,7 @@ public class Earthquake {
     private double mMagnitude;
     private String mLocation;
     private long mTimeInMilliseconds;
+    private String mUrl;
 
 
     /**
@@ -25,10 +26,11 @@ public class Earthquake {
      * @param location 表示地震的城市位置
      * @param timeInMilliseconds 表示地震发生时以毫秒（根据 Epoch）计的时间
      */
-    public Earthquake(double magnitude, String location, long timeInMilliseconds) {
+    public Earthquake(double magnitude, String location, long timeInMilliseconds, String url) {
         mMagnitude = magnitude;
         mLocation = location;
         mTimeInMilliseconds = timeInMilliseconds;
+        mUrl = url;
     }
 
     // Return the magnitude of earthquake
@@ -44,5 +46,9 @@ public class Earthquake {
     // Return the date of earthquake
     public long getmTimeInMilliseconds() {
         return mTimeInMilliseconds;
+    }
+
+    public String getmUrl() {
+        return mUrl;
     }
 }
