@@ -5,4 +5,8 @@
     <string name="no_internet_connection">No internet connection.</string>
     <string name="settings_menu_item">Earthquake Settings</string>
     <string name="settings_title">Earthquake Settings</string>
+    <!-- Strings For Minimum Magnitude Preference -->
+    <string name="settings_min_magnitude_label">Minimum Magnitude</string>
+    <string name="settings_min_magnitude_key" translatable="false">min_magnitude</string>
+    <string name="settings_min_magnitude_default" translatable="false">6</string>
 </resources>
