@@ -10,22 +10,21 @@ import android.content.Context;
 import java.util.List;
 
 /**
- * Loads a list of earthquakes by using an AsyncTask to perform the
- * network request to the given URL.
+ * 通过使用 AsyncTask 执行
+ * 给定 URL 的网络请求，加载地震列表。
  */
 public class EarthquakeLoader extends AsyncTaskLoader<List<Earthquake>> {
-    // Tag for log messages
+    /** 日志消息标签 */
     private static final String LOG_TAG = EarthquakeLoader.class.getName();
-
-    // Query URL
+    /** 查询 URL */
     private String mUrl;
-
     /**
-     * Constructs a new {@link EarthquakeLoader}.
+     * 构建新 {@link EarthquakeLoader}。
      *
-     * @param context of the activity
-     * @param url to load data from
+     * 活动的 @param context
+     * 要从中加载数据的 @param url
      */
+
     public EarthquakeLoader(Context context, String url) {
         super(context);
         mUrl = url;
@@ -37,7 +36,7 @@ public class EarthquakeLoader extends AsyncTaskLoader<List<Earthquake>> {
     }
 
     /**
-     * This is on a background thread.
+     * 位于后台线程上。
      */
     @Override
     public List<Earthquake> loadInBackground() {
@@ -45,7 +44,7 @@ public class EarthquakeLoader extends AsyncTaskLoader<List<Earthquake>> {
             return null;
         }
 
-        // Perform the network request, parse the response, and extract a list of earthquakes.
+        // 执行网络请求、解析响应和提取地震列表。
         List<Earthquake> earthquakes = QueryUtils.fetchEarthquakeData(mUrl);
         return earthquakes;
     }

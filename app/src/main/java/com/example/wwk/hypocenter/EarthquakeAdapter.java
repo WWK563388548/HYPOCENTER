@@ -2,6 +2,7 @@ package com.example.wwk.hypocenter;
 
 import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +16,6 @@ import java.util.Date;
 import java.util.List;
 
 /**
- *
  * Created by wwk on 17/5/8.
  */
 
@@ -27,80 +27,78 @@ public class EarthquakeAdapter extends ArrayAdapter<Earthquake> {
         super(context, 0, earthquakes);
     }
 
+    @Nullable
+    @Override
+    public View getView(int position, @Nullable View convertView, @Nullable ViewGroup parent) {
 
-    public View getView(int position, View convertView, ViewGroup parent) {
+            // 检查是否已经有可以重用的列表项视图（称为 convertView），
+            // 否则，如果 convertView 为 null，则 inflate 一个新列表项布局。
+            String primaryLocation;
+            String locationOffset;
 
-        // 检查是否已经有可以重用的列表项视图（称为 convertView），
-        // 否则，如果 convertView 为 null，则 inflate 一个新列表项布局。
-        View listItemView = convertView;
-        if (listItemView == null) {
-            listItemView = LayoutInflater.from(getContext()).inflate(R.layout.list_item,
-                    parent, false);
+            View listItemView = convertView;
+            if (listItemView == null) {
+                listItemView = LayoutInflater.from(getContext()).inflate(R.layout.list_item, parent, false);
+            }
+
+            // Get the {@link Earthquakeclass} object located at this position in the list
+            // 在地震列表中的给定位置找到地震
+            Earthquake currentEarthquake = getItem(position);
+
+            String originalLocation = currentEarthquake.getmLocation();
+
+            if (originalLocation.contains(LOCATION_SEPARATOR)) {
+                String[] parts = originalLocation.split(LOCATION_SEPARATOR);
+                locationOffset = parts[0] +LOCATION_SEPARATOR;
+                primaryLocation = parts[1];
+            } else {
+                locationOffset = getContext().getString(R.string.near_the);
+                primaryLocation = originalLocation;
+            }
+
+
+            // 找到视图 ID 为 magnitude 的 TextView
+            TextView magTextView = (TextView) listItemView.findViewById(R.id.magnitude);
+
+            // 格式化震级使其显示一位小数
+            String formattedMagnitude = formatMagnitude(currentEarthquake.getmMagnitude());
+
+            // 为震级圆圈设置正确的背景颜色。
+            // 从 TextView 获取背景，该背景是一个 GradientDrawable。
+            GradientDrawable magnitudeCircle = (GradientDrawable) magTextView.getBackground();
+            // 根据当前的地震震级获取相应的背景颜色
+            int magnitudeColor = getMagnitudeColor(currentEarthquake.getmMagnitude());
+            // 设置震级圆圈的颜色
+            magnitudeCircle.setColor(magnitudeColor);
+
+            // 在该 TextView 中显示目前地震的震级
+            magTextView.setText(formattedMagnitude);
+
+            TextView locationOffsetView = (TextView) listItemView.findViewById(R.id.location_offset);
+            locationOffsetView.setText(locationOffset);
+
+            TextView primaryLocationView = (TextView) listItemView.findViewById(R.id.primary_location);
+            primaryLocationView.setText(primaryLocation);
+
+            // 根据地震时间（以毫秒为单位）创建一个新的 Date 对象
+            Date dateObject = new Date(currentEarthquake.getmTimeInMilliseconds());
+
+            // 找到视图 ID 为 date 的 TextView
+            TextView dateTextView = (TextView) listItemView.findViewById(R.id.date);
+            // 设置日期字符串的格式（即 "Mar 3, 1984"）
+            String formattedDate = formatDate(dateObject);
+            // 在该 TextView 中显示目前地震的日期
+            dateTextView.setText(formattedDate);
+
+            // 找到视图 ID 为 time 的 TextView
+            TextView timeTextView = (TextView) listItemView.findViewById(R.id.time);
+            // 设置时间字符串的格式（即 "4:30PM"）
+            String formattedTime = formatTime(dateObject);
+            // 在该 TextView 中显示目前地震的时间
+            timeTextView.setText(formattedTime);
+
+            return listItemView;
         }
-
-
-        // 在地震列表中的给定位置找到地震
-        Earthquake currentEarthquake = getItem(position);
-
-        // 找到视图 ID 为 magnitude 的 TextView
-        TextView magnitudeView = (TextView) listItemView.findViewById(R.id.magnitude);
-        // 格式化震级使其显示一位小数
-        String formattedMagnitude = formatMagnitude(currentEarthquake.getmMagnitude());
-        magnitudeView.setText(formattedMagnitude);
-
-        /**
-         * 为震级圆圈设置正确的背景颜色。
-         * 从 TextView 获取背景，该背景是一个 GradientDrawable。
-         */
-        GradientDrawable magnitudeCircle = (GradientDrawable) magnitudeView.getBackground();
-        // 根据当前的地震震级获取相应的背景颜色
-        int magnitudeColor = getMagnitudeColor(currentEarthquake.getmMagnitude());
-        // 设置震级圆圈的颜色
-        magnitudeCircle.setColor(magnitudeColor);
-
-
-        String originalLocation = currentEarthquake.getmLocation();
-        String primaryLocation;
-        String locationOffset;
-
-        if (originalLocation.contains(LOCATION_SEPARATOR)) {
-            String[] parts = originalLocation.split(LOCATION_SEPARATOR);
-            locationOffset = parts[0] + LOCATION_SEPARATOR;
-            primaryLocation = parts[1];
-        } else {
-            locationOffset = getContext().getString(R.string.near_the);
-            primaryLocation = originalLocation;
-        }
-        // 找到视图 ID 为 location 的 TextView
-        TextView locationOffsetView = (TextView) listItemView.findViewById(R.id.location_offset);
-        locationOffsetView.setText(locationOffset);
-
-        TextView primaryLocationView = (TextView) listItemView.findViewById(R.id.primary_location);
-        primaryLocationView.setText(primaryLocation);
-
-        // 根据地震时间（以毫秒为单位）创建一个新的 Date 对象
-        Date dateObject = new Date(currentEarthquake.getmTimeInMilliseconds());
-
-        /**
-         * 找到视图 ID 为 date 的 TextView
-         * 设置日期字符串的格式（即 "Mar 3, 1984"）
-         * 在该 TextView 中显示目前地震的日期
-         */
-        TextView dateView = (TextView) listItemView.findViewById(R.id.date);
-        String formattedDate = formatDate(dateObject);
-        dateView.setText(formattedDate);
-
-        /**
-         * 找到视图 ID 为 time 的 TextView
-         * 设置时间字符串的格式（即 "4:30PM"）
-         * 在该 TextView 中显示目前地震的时间
-         */
-        TextView timeView = (TextView) listItemView.findViewById(R.id.time);
-        String formattedTime = formatTime(dateObject);
-        timeView.setText(formattedTime);
-
-        return listItemView;
-    }
 
     /**
      * 从 Date 对象返回格式化的日期字符串（即 "Mar 3, 1984"）。

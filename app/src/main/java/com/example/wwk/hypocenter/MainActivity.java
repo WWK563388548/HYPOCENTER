@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,95 +24,94 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Earthquake>>{
 
-    // Tag for log messages
-    private static final String LOG_TAG = MainActivity.class.getName();
-
-    // URL for earthquake data from the USGS dataset
-    private static final String USGS_REQUEST_URL =
+    public static final String LOG_TAG = MainActivity.class.getName();
+    private static final String REQUEST_URL =
             "https://earthquake.usgs.gov/fdsnws/event/1/query";
-
-    /**
-     * Constant value for the earthquake loader ID. We can choose any integer.
-     * This really only comes into play if you're using multiple loaders.
-     */
-    private static final int EARTHQUAKE_LOADER_ID = 1;
-
-    // Adapter for the list of earthquakes
     private EarthquakeAdapter mAdapter;
+    /**
+     * 地震 loader ID 的常量值。我们可选择任意整数。
+     * 仅当使用多个 loader 时该设置才起作用。
+     */
+    private static final int EARTHQUAKE_LOAD_ID = 1;
 
-    // Display TextView when the List is empty
+    /** 列表为空时显示的 TextView */
     private TextView mEmptyStateTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(LOG_TAG, "Test: Earthquake Activity onCreate called.");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
 
-        // Find a reference to the {@link ListView} in the layout
+        // 在布局中查找 {@link ListView} 的引用
         ListView earthquakeListView = (ListView) findViewById(R.id.list);
 
         mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
         earthquakeListView.setEmptyView(mEmptyStateTextView);
 
+        // 创建新适配器，将空地震列表作为输入
         mAdapter = new EarthquakeAdapter(this, new ArrayList<Earthquake>());
-        // Set the adapter on the {@link ListView}
-        // so the list can be populated in the user interface
+        // 在 {@link ListView} 上设置适配器
+        // 以便可以在用户界面中填充列表
         earthquakeListView.setAdapter(mAdapter);
-
-
-
-        // Set an item click listener on the ListView, which sends an intent to a web browser
-        // to open a website with more information about the selected earthquake.
+        // 在 ListView 上设置项目单击监听器，该监听器会向 Web 浏览器发送 intent，
+        // 打开包含有关所选地震详细信息的网站。
         earthquakeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // Find the current earthquake that was clicked on
+            public void onItemClick(AdapterView<?> parent, View view, int position, long l) {
+                // 查找单击的当前地震
                 Earthquake currentEarthquake = mAdapter.getItem(position);
-                // Convert the String URL into a URI object (to pass into the Intent constructor)
+                // 将字符串 URL 转换成 URI 对象（传递到 Intent 构造函数中）
                 Uri earthquakeUri = Uri.parse(currentEarthquake.getmUrl());
-                // Create a new intent to view the earthquake URI
+                // 创建新 intent 以查看地震 URI
                 Intent websiteIntent = new Intent(Intent.ACTION_VIEW, earthquakeUri);
-                // Send the intent to launch a new activity
+                // 发送 intent 以启动新活动
                 startActivity(websiteIntent);
             }
         });
 
         // Get a reference to the ConnectivityManager to check state of network connectivity
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
         // Get details on the currently active default data network
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         // If there is a network connection, fetch data
         if (networkInfo != null && networkInfo.isConnected()) {
-            // Get a reference to the LoaderManager, in order to interact with loaders.
+
+            // 引用 LoaderManager，以便与 loader 进行交互。
             LoaderManager loaderManager = getLoaderManager();
-            // Initialize the loader. Pass in the int ID constant defined above and pass in null for
-            // the bundle. Pass in this activity for the LoaderCallbacks parameter (which is valid
-            // because this activity implements the LoaderCallbacks interface).
-            loaderManager.initLoader(EARTHQUAKE_LOADER_ID, null, this);
+            // 初始化 loader。传递上面定义的整数 ID 常量并为为捆绑
+            // 传递 null。为 LoaderCallbacks 参数（由于
+            // 此活动实现了 LoaderCallbacks 接口而有效）传递此活动。
+            loaderManager.initLoader(EARTHQUAKE_LOAD_ID, null, this);
         } else {
-            // Display error
+            // Otherwise, display error
             // First, hide loading indicator so error message will be visible
             View loadingIndicator = findViewById(R.id.loading_indicator);
             loadingIndicator.setVisibility(View.GONE);
             // Update empty state with no connection error message
             mEmptyStateTextView.setText(R.string.no_internet_connection);
         }
+
+
     }
 
     @Override
     public Loader<List<Earthquake>> onCreateLoader(int i, Bundle bundle) {
-        // Create a new loader for the given URL
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String minMagnitude = sharedPreferences.getString(
+
+        SharedPreferences sharedprefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String minMagnitude = sharedprefs.getString(
                 getString(R.string.settings_min_magnitude_key),
                 getString(R.string.settings_min_magnitude_default));
 
-        String orderBy = sharedPreferences.getString(
-                getString(R.string.settings_order_by_label),
+        String orderBy = sharedprefs.getString(
+                getString(R.string.settings_order_by_key),
                 getString(R.string.settings_order_by_default));
 
-        Uri baseUri = Uri.parse(USGS_REQUEST_URL);
+        Uri baseUri = Uri.parse(REQUEST_URL);
         Uri.Builder uriBuilder = baseUri.buildUpon();
 
         uriBuilder.appendQueryParameter("format", "geojson");
@@ -124,26 +124,28 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<List<Earthquake>> loader, List<Earthquake> earthquakes) {
-        // Hide loading indicator because the data has been loaded
+
+        // 因数据已加载，隐藏加载指示符
         View loadingIndicator = findViewById(R.id.loading_indicator);
         loadingIndicator.setVisibility(View.GONE);
+
         // Set empty state text to display "No earthquakes found."
         mEmptyStateTextView.setText(R.string.no_earthquakes);
-        // Clear the adapter of previous earthquake data
+        // 清除之前地震数据的适配器
         mAdapter.clear();
-        // If there is a valid list of {@link Earthquake}s, then add them to the adapter's
-        // data set. This will trigger the ListView to update.
-        if (earthquakes != null && !earthquakes.isEmpty()) {
+
+        // 如果存在 {@link Earthquake} 的有效列表，则将其添加到适配器的
+        // 数据集。这将触发 ListView 执行更新。
+        if (earthquakes != null || !earthquakes.isEmpty()) {
             mAdapter.addAll(earthquakes);
         }
     }
 
     @Override
-    public void onLoaderReset(Loader<List<Earthquake>> loader) {
-        // Loader reset, we can clear out our existing data.
+    public void onLoaderReset(Loader<List<Earthquake>> loader){
+        // 重置 Loader，以便能够清除现有数据。
         mAdapter.clear();
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -151,16 +153,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            Intent settingsIntent = new Intent(this, SettingActivity.class);
-            startActivity(settingsIntent);
+            Intent settingIntent = new Intent(this, SettingActivity.class);
+            startActivity(settingIntent);
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
+
 
 }
 

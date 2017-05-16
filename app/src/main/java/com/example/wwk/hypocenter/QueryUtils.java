@@ -1,5 +1,9 @@
 package com.example.wwk.hypocenter;
 
+/**
+ * Created by wwk on 17/5/8.
+ */
+
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -18,27 +22,88 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by wwk on 17/5/8.
- */
+import static com.example.wwk.hypocenter.MainActivity.LOG_TAG;
 
+/**
+ * Helper methods related to requesting and receiving earthquake data from USGS.
+ */
 public final class QueryUtils {
 
-    // Tag for log message
-    private static final String LOG_TAG = QueryUtils.class.getSimpleName();
 
     private QueryUtils() {
-
     }
 
     /**
-     * Query the USGS dataset and return a list of {@link Earthquake} objects.
+     * 返回通过解析给定 JSON 响应构建的 {@link Earthquake} 对象
+     * 列表。
      */
+    public static List<Earthquake> extractFeatureFromJSON(String earthquakeJSON) {
+
+        // 如果 JSON 字符串为空或 null，将提早返回。
+        if (TextUtils.isEmpty(earthquakeJSON)) {
+            return null;
+        }
+        // 创建一个可以添加地震的空 ArrayList
+        List<Earthquake> earthquakes = new ArrayList<>();
+
+        // 尝试解析 JSON 响应字符串。如果格式化 JSON 的方式存在问题，
+        // 则将抛出 JSONException 异常对象。
+        // 捕获该异常以便应用不会崩溃，并将错误消息打印到日志中。
+        try {
+
+            // 通过 JSON 响应字符串创建 JSONObject
+
+            JSONObject baseJsonResponse = new JSONObject(earthquakeJSON);
+            // 提取与名为 "features" 的键关联的 JSONArray，
+            // 该键表示特征（或地震）列表。
+            JSONArray earthquakeArray = baseJsonResponse.getJSONArray("features");
+
+            // 针对 earthquakeArray 中的每个地震，创建 {@link Earthquake} 对象
+            for (int i = 0; i < earthquakeArray.length(); i++) {
+                // 获取地震列表中位置 i 处的单一地震
+                JSONObject currentEarthquake = earthquakeArray.getJSONObject(i);
+                // 针对给定地震，提取与名为 "properties" 的键关联的 JSONObject，
+                // 该键表示该地震所有属性的
+                // 列表。
+                JSONObject properties = currentEarthquake.getJSONObject("properties");
+
+                // 提取名为 "mag" 的键的值
+                double magnitude = properties.getDouble("mag");
+                // 提取名为 "place" 的键的值
+                String location = properties.getString("place");
+                // 提取名为 "time" 的键的值
+                long time = properties.getLong("time");
+                // 提取名为 "url" 的键的值
+                String url = properties.getString("url");
+
+                // 使用 JSON 响应中的震级、位置、时间和 url，
+                // 创建新的 {@link Earthquake} 对象。
+                Earthquake earthquake = new Earthquake(magnitude, location, time, url);
+                // 将该新 {@link Earthquake} 添加到地震列表。
+                earthquakes.add(earthquake);
+            }
+
+
+        } catch (JSONException e) {
+            // 在 "try" 块中执行上述任一语句时若系统抛出错误，
+            // 则在此处捕获异常，以便应用不会崩溃。在日志消息中打印
+            // 来自异常的消息。
+            Log.e("QueryUtils", "Problem parsing the earthquake JSON results", e);
+        }
+
+        // 返回地震列表
+        return earthquakes;
+    }
+
+    /**
+     * 查询 USGS 数据集并返回 {@link Earthquake} 对象的列表。
+     */
+
     public static List<Earthquake> fetchEarthquakeData(String requestUrl) {
-        // Create URL object
+        // 创建 URL 对象
         URL url = createUrl(requestUrl);
 
-        // Perform HTTP request to the URL and receive a JSON response back
+        // 执行 URL 的 HTTP 请求并接收返回的 JSON 响应
         String jsonResponse = null;
         try {
             jsonResponse = makeHttpRequest(url);
@@ -46,32 +111,36 @@ public final class QueryUtils {
             Log.e(LOG_TAG, "Problem making the HTTP request.", e);
         }
 
-        // Extract relevant fields from the JSON response and create a list of {@link Earthquake}
-        List<Earthquake> earthquakes = extractFeatureFromJson(jsonResponse);
-        // Return the list of {@link Earthquake}
+        // 从 JSON 响应提取相关域并创建 {@link Earthquake} 的列表
+        List<Earthquake> earthquakes = extractFeatureFromJSON(jsonResponse);
+
+        // 返回 {@link Earthquake} 的列表
         return earthquakes;
     }
 
     /**
-     * Returns new URL object from the given string URL.
+     * 从给定字符串 URL 返回新 URL 对象。
      */
+
     private static URL createUrl(String stringUrl) {
         URL url = null;
         try {
             url = new URL(stringUrl);
         } catch (MalformedURLException e) {
-            Log.e(LOG_TAG, "Problem building the URL ", e);
+            Log.e(LOG_TAG, "Problem building the url ", e);
         }
+
         return url;
     }
 
     /**
-     * Make an HTTP request to the given URL and return a String as the response.
+     * 从给定字符串 URL 返回新 URL 对象。
      */
+
     private static String makeHttpRequest(URL url) throws IOException {
         String jsonResponse = "";
 
-        // If the URL is null, then return early.
+        // 如果 URL 为空，则提早返回。
         if (url == null) {
             return jsonResponse;
         }
@@ -80,14 +149,14 @@ public final class QueryUtils {
         InputStream inputStream = null;
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setReadTimeout(10000); // milliseconds
-            urlConnection.setConnectTimeout(15000);
+            urlConnection.setReadTimeout(10000 /* milliseconds */);
+            urlConnection.setConnectTimeout(15000 /* milliseconds */);
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();
 
-            // If the request was successful (response code 200),
-            // then read the input stream and parse the response.
-            if (urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            // 如果请求成功（响应代码 200），
+            // 则读取输入流并解析响应。
+            if (urlConnection.getResponseCode() == 200) {
                 inputStream = urlConnection.getInputStream();
                 jsonResponse = readFromStream(inputStream);
             } else {
@@ -99,11 +168,10 @@ public final class QueryUtils {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
-
             if (inputStream != null) {
-                // Closing the input stream could throw an IOException, which is why
-                // the makeHttpRequest(URL url) method signature specifies than an IOException
-                // could be thrown.
+                // 关闭输入流可能会抛出 IOException，这就是
+                //  makeHttpRequest(URL url) 方法签名指定可能抛出 IOException 的
+                // 原因。
                 inputStream.close();
             }
         }
@@ -112,9 +180,10 @@ public final class QueryUtils {
     }
 
     /**
-     * Convert the {@link InputStream} into a String which contains the
-     * whole JSON response from the server.
+     * 将 {@link InputStream} 转换为包含
+     * 来自服务器的整个 JSON 响应的字符串。
      */
+
     private static String readFromStream(InputStream inputStream) throws IOException {
         StringBuilder output = new StringBuilder();
         if (inputStream != null) {
@@ -130,53 +199,4 @@ public final class QueryUtils {
         return output.toString();
     }
 
-    /**
-     * Return a list of {@link Earthquake} objects that has been built up from
-     * parsing the given JSON response.
-     */
-    public static List<Earthquake> extractFeatureFromJson(String earthquakeJSON) {
-
-        // If the JSON string is empty or null, then return early.
-        if (TextUtils.isEmpty(earthquakeJSON)) {
-            return null;
-        }
-
-        // Create an empty ArrayList that we can start adding earthquakes to
-        List<Earthquake> earthquakes = new ArrayList<>();
-
-        // Try to parse the JSON response string. If there's a problem with the way the JSON
-        // is formatted, a JSONException exception object will be thrown.
-        // Catch the exception so the app doesn't crash, and print the error message to the logs.
-        try {
-
-            // Create a JSONObject from the JSON response string
-            JSONObject baseJsonResponse = new JSONObject(earthquakeJSON);
-            // Extract the JSONArray associated with the key called "features",
-            // which represents a list of features (or earthquakes).
-            JSONArray earthquakeArray = baseJsonResponse.getJSONArray("features");
-
-            // For each earthquake in the earthquakeArray, create an {@link Earthquake} object
-            for (int i = 0; i < earthquakeArray.length(); i++) {
-
-                JSONObject currentEarthquake = earthquakeArray.getJSONObject(i);
-                JSONObject properties = currentEarthquake.getJSONObject("properties");
-
-                // 提取名为 "mag" 的键的值
-                double magnitude = properties.getDouble("mag");
-                String location = properties.getString("place");
-                // 提取名为 "time" 的键的值
-                long time = properties.getLong("time");
-                // 提取名为 "url" 的键的值
-                String url = properties.getString("url");
-
-                Earthquake earthquake = new Earthquake(magnitude, location, time, url);
-                earthquakes.add(earthquake);
-            }
-
-        } catch (JSONException e) {
-            Log.e("QueryUtils", "Problem parsing the earthquake Json result", e);
-        }
-
-        return earthquakes;
-    }
 }
