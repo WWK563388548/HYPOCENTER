@@ -13,8 +13,8 @@ public class Earthquake {
      * location is the city location of earthquake
      * date is the date the earthquake happened
      */
-    private double mMagnitude;
     private String mLocation;
+    private double mMagnitude;
     private long mTimeInMilliseconds;
     private String mUrl;
 
@@ -33,21 +33,21 @@ public class Earthquake {
         mUrl = url;
     }
 
-    // Return the magnitude of earthquake
+    public String getmPosition() {
+        return mLocation;
+    }
+
+
     public double getmMagnitude() {
         return mMagnitude;
     }
 
-    // Return the location of earthquake
-    public String getmLocation() {
-        return mLocation;
-    }
-
-    // Return the date of earthquake
+    // return time of earthquake
     public long getmTimeInMilliseconds() {
         return mTimeInMilliseconds;
     }
 
+    // 返回用于查找关于地震的更多信息的网站 URL。
     public String getmUrl() {
         return mUrl;
     }

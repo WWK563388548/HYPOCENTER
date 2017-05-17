@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         View loadingIndicator = findViewById(R.id.loading_indicator);
         loadingIndicator.setVisibility(View.GONE);
 
-        // Set empty state text to display "No earthquakes found."
+        // 空状态下设置的"No earthquakes found."
         mEmptyStateTextView.setText(R.string.no_earthquakes);
         // 清除之前地震数据的适配器
         mAdapter.clear();

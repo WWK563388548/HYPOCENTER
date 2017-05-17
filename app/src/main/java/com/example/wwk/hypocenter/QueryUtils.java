@@ -30,6 +30,11 @@ import static com.example.wwk.hypocenter.MainActivity.LOG_TAG;
 public final class QueryUtils {
 
 
+    /**
+     * Create a private constructor because no one should ever create a {@link QueryUtils} object.
+     * This class is only meant to hold static variables and methods, which can be accessed
+     * directly from the class name QueryUtils (and an object instance of QueryUtils is not needed).
+     */
     private QueryUtils() {
     }
 
@@ -170,8 +175,7 @@ public final class QueryUtils {
             }
             if (inputStream != null) {
                 // 关闭输入流可能会抛出 IOException，这就是
-                //  makeHttpRequest(URL url) 方法签名指定可能抛出 IOException 的
-                // 原因。
+                //  makeHttpRequest(URL url) 方法签名指定可能抛出 IOException 的原因。
                 inputStream.close();
             }
         }
