@@ -24,6 +24,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.wwk.hypocenter.MainActivity"/>
         </activity>
+
+        <activity android:name=".WebViewActivity"
+            android:label="Earthquake detail"/>
     </application>
 
 </manifest>

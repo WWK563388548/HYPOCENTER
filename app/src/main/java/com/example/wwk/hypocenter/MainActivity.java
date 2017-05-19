@@ -66,7 +66,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 // 将字符串 URL 转换成 URI 对象（传递到 Intent 构造函数中）
                 Uri earthquakeUri = Uri.parse(currentEarthquake.getmUrl());
                 // 创建新 intent 以查看地震 URI
-                Intent websiteIntent = new Intent(Intent.ACTION_VIEW, earthquakeUri);
+                Intent websiteIntent = new Intent(view.getContext(), WebViewActivity.class);
+                websiteIntent.setData(earthquakeUri);
                 // 发送 intent 以启动新活动
                 startActivity(websiteIntent);
             }
